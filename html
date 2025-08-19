@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace Bola - AI Consultation Assistant</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: transparent;
+        }
+
+        /* Chatbot container - matches Notion embed style */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        /* Chat button - simple and clean like Notion */
+        #chat-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #2563eb;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        #chat-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        #chat-button svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* Chat window - matches Notion's embed style */
+        #chat-window {
+            position: absolute;
+            bottom: 75px;
+            right: 0;
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            display: none;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        #chat-window.open {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Chat header - simple like Notion */
+        .chat-header {
+            background: #2563eb;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .chat-header p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 2px 0 0 0;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.8;
+        }
+
+        .close-button:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Chat iframe - full integration */
+        .chat-iframe {
+            width: 100%;
+            height: calc(100% - 70px);
+            border: none;
+            background: white;
+        }
+
+        /* Mobile responsive - matches your current design */
+        @media (max-width: 768px) {
+            #chatbot-container {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            #chat-window {
+                width: calc(100vw - 30px);
+                height: calc(100vh - 100px);
+                bottom: 75px;
+                right: -15px;
+                max-width: 400px;
+            }
+
+            #chat-button {
+                width: 56px;
+                height: 56px;
+            }
+
+            #chat-button svg {
+                width: 22px;
+                height: 22px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #chat-window {
+                width: calc(100vw - 20px);
+                right: -10px;
+                height: calc(100vh - 90px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Chatbot Widget Container -->
+    <div id="chatbot-container">
+        <!-- Chat Window -->
+        <div id="chat-window">
+            <div class="chat-header">
+                <div>
+                    <h3>Grace's AI Assistant</h3>
+                    <p>Get your automation roadmap in 30 minutes</p>
+                </div>
+                <button class="close-button" onclick="toggleChat()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <iframe 
+                class="chat-iframe" 
+                src="https://primary-production-12ff.up.railway.app/webhook/consultation-booking-enhanced/chat"
+                title="Grace Bola AI Consultation Assistant"
+                allow="microphone; camera">
+            </iframe>
+        </div>
+
+        <!-- Chat Button -->
+        <button id="chat-button" onclick="toggleChat()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        let chatOpen = false;
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chat-window');
+            const chatButton = document.getElementById('chat-button');
+            
+            chatOpen = !chatOpen;
+            
+            if (chatOpen) {
+                chatWindow.classList.add('open');
+            } else {
+                chatWindow.classList.remove('open');
+            }
+
+            // Optional: Track analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', chatOpen ? 'chat_opened' : 'chat_closed', {
+                    'event_category': 'engagement',
+                    'event_label': 'consultation_chatbot'
+                });
+            }
+        }
+
+        // Optional: Auto-show after delay (like your current setup)
+        setTimeout(() => {
+            if (!chatOpen) {
+                // Could add a subtle animation or notification here
+                // to match your current Notion behavior
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

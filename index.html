@@ -295,7 +295,6 @@
         <!-- Header -->
         <div class="chat-header">
             <h2>Grace's AI Assistant</h2>
-            <p>Get your custom automation roadmap in 30 minutes - completely free</p>
             <button class="start-chat-btn" onclick="startChat()">
                 Start Conversation
             </button>
@@ -349,8 +348,8 @@
             chatStarted = true;
             document.getElementById('inputContainer').classList.add('active');
             
-            // Add initial AI message with your new greeting
-            addMessage('GA', 'Hi! I\'m Grace\'s AI assistant. I\'ve helped over 50 businesses save 15+ hours weekly through intelligent automation.\n\nTo show you the most relevant results, what type of business do you run?\n\n🏠 Home Services (HVAC, Plumbing, Roofing)\n🏢 Professional Services (Real Estate, Insurance, Legal)\n🔧 Contractors & Trades\n💼 Other Business Type\n⚡ Just show me everything', false);
+            // Add initial AI message to match your updated workflow
+            addMessage('GA', 'Hi! I\'m Grace\'s AI assistant. What kind of automation are you interested in?', false);
             
             if (window.innerWidth > 768) {
                 document.getElementById('messageInput').focus();

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace Bola - AI Consultation Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #ffffff;
+            color: #374151;
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100%;
+            background: #ffffff;
+            position: relative;
+        }
+
+        /* Header with clear CTA */
+        .chat-header {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 0.75rem;
+        }
+
+        .start-chat-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .start-chat-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f9fafb;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #374151;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #10b981;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            max-width: 85%;
+            word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .message.user .message-bubble {
+            background: #10b981;
+            color: white;
+            border: 1px solid #10b981;
+        }
+
+        /* Input Container */
+        .input-container {
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+        }
+
+        .input-container.active {
+            display: block;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 1.5rem;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+            background: #f9fafb;
+        }
+
+        .message-input:focus {
+            border-color: #10b981;
+            background: white;
+        }
+
+        .send-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Loading indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            border-radius: 1rem;
+            max-width: 85%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typingPulse 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingPulse {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 0.75rem;
+            }
+
+            .chat-header h2 {
+                font-size: 1rem;
+            }
+
+            .chat-header p {
+                font-size: 0.8rem;
+            }
+
+            .start-chat-btn {
+                padding: 0.65rem 1.25rem;
+                font-size: 0.85rem;
+            }
+
+            .messages-container {
+                padding: 0.75rem;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+                padding: 0.65rem 0.85rem;
+                font-size: 0.9rem;
+            }
+
+            .input-container {
+                padding: 0.75rem;
+            }
+
+            .message-input {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .chat-header {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <h2>Grace's AI Assistant</h2>
+            <p>Get your custom automation roadmap in 30 minutes - completely free</p>
+            <button class="start-chat-btn" onclick="startChat()">
+                Start Conversation
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+            <!-- Typing indicator -->
+            <div class="message">
+                <div class="message-avatar">GA</div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span>Grace's AI is thinking</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Container -->
+        <div class="input-container" id="inputContainer">
+            <form class="input-form" onsubmit="sendMessage(event)">
+                <input 
+                    type="text" 
+                    class="message-input" 
+                    id="messageInput"
+                    placeholder="Choose your business type or ask about automation..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-btn" id="sendBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let chatStarted = false;
+        let isWaitingForResponse = false;
+
+        // Your n8n webhook URL
+        const WEBHOOK_URL = 'https://primary-production-12ff.up.railway.app/webhook/consultation-booking-enhanced/chat';
+
+        function startChat() {
+            if (chatStarted) return;
+            
+            chatStarted = true;
+            document.getElementById('inputContainer').classList.add('active');
+            
+            // Add initial AI message with your new greeting
+            addMessage('GA', 'Hi! I\'m Grace\'s AI assistant. I\'ve helped over 50 businesses save 15+ hours weekly through intelligent automation.\n\nTo show you the most relevant results, what type of business do you run?\n\n🏠 Home Services (HVAC, Plumbing, Roofing)\n🏢 Professional Services (Real Estate, Insurance, Legal)\n🔧 Contractors & Trades\n💼 Other Business Type\n⚡ Just show me everything', false);
+            
+            if (window.innerWidth > 768) {
+                document.getElementById('messageInput').focus();
+            }
+        }
+
+        function addMessage(sender, text, isUser = false) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : ''}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? 'You' : sender;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            
+            const typingMessage = messagesContainer.querySelector('.message:last-child');
+            messagesContainer.insertBefore(messageDiv, typingMessage);
+            
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+
+        function showTyping() {
+            document.getElementById('typingIndicator').classList.add('active');
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+
+        async function sendMessage(event) {
+            event.preventDefault();
+            
+            if (isWaitingForResponse) return;
+            
+            const input = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('You', message, true);
+            
+            input.value = '';
+            input.disabled = true;
+            sendBtn.disabled = true;
+            isWaitingForResponse = true;
+            
+            showTyping();
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chatInput: message
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const data = await response.json();
+                
+                hideTyping();
+                addMessage('GA', data.output || 'I apologize, but I encountered an issue. Please try asking about automation for your business type.', false);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                hideTyping();
+                addMessage('GA', 'I\'m experiencing a technical issue. Please try your question again or contact Grace directly at gracebola@protonmail.com', false);
+            } finally {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                isWaitingForResponse = false;
+                
+                if (window.innerWidth > 768) {
+                    input.focus();
+                }
+            }
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage(e);
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!chatStarted && window.innerWidth <= 768) {
+                startChat();
+            }
+        }, { once: true });
+
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            document.addEventListener('touchstart', function() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
